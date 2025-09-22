@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from services.generation_service import generate_image
 from services.analysis_service import analyze_image_content
-from utils.utils import enhance_prompt, create_download_link
+from utils.utils import enhance_prompt, create_download_link, convert_to_pil_image
 from config.config import STYLE_PRESETS
 import PIL.Image
 
