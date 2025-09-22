@@ -3,7 +3,6 @@ import io
 from datetime import datetime
 import json
 import PIL.Image
-from config.config import STYLE_PRESETS, ASPECT_RATIOS
 
 def init_session_state():
     """Initialize session state variables"""
@@ -53,12 +52,32 @@ def convert_to_pil_image(image):
 
 def enhance_prompt(base_prompt, style, aspect_ratio, quality_boost=True):
     """Enhance user prompt with style and technical improvements"""
+    # Style presets
+    STYLE_PRESETS = {
+        "Photorealistic": "ultra-realistic, high-definition, professional photography, sharp details",
+        "Digital Art": "digital painting, concept art, detailed illustration, vibrant colors",
+        "Cartoon Style": "cartoon, animated style, colorful and fun, playful",
+        "Oil Painting": "classical oil painting, artistic brushstrokes, textured canvas",
+        "Sketch": "pencil sketch, hand-drawn, artistic lines, monochrome",
+        "Vintage": "vintage style, retro aesthetic, aged look, nostalgic",
+        "Cyberpunk": "neon lights, futuristic, cyberpunk aesthetic, dark atmosphere",
+        "Minimalist": "clean, simple, minimalist design, elegant simplicity"
+    }
+    
+    # Aspect ratios
+    ASPECT_RATIOS = {
+        "Square (1:1)": "square format, equal dimensions",
+        "Portrait (3:4)": "portrait orientation, vertical composition",
+        "Landscape (4:3)": "landscape orientation, horizontal composition", 
+        "Wide (16:9)": "wide format, cinematic composition"
+    }
+    
     enhanced = base_prompt
     
-    if style != "None":
+    if style != "None" and style in STYLE_PRESETS:
         enhanced = f"{enhanced}, {STYLE_PRESETS[style]}"
     
-    if aspect_ratio != "Default":
+    if aspect_ratio != "Default" and aspect_ratio in ASPECT_RATIOS:
         enhanced = f"{enhanced}, {ASPECT_RATIOS[aspect_ratio]}"
     
     if quality_boost:
