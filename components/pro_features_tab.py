@@ -64,8 +64,9 @@ def render_batch_operations():
                 cols = st.columns(min(3, len(all_results)))
                 for i, img in enumerate(all_results):
                     with cols[i % 3]:
-                        st.image(img, caption=f"Batch {i+1}")
-                        create_download_link(img, f"batch_image_{i+1}")
+                        display_image = convert_to_pil_image(img)
+                        st.image(display_image, caption=f"Batch {i+1}")
+                        create_download_link(display_image, f"batch_image_{i+1}")
             else:
                 st.warning("Please enter batch prompts!")
     
