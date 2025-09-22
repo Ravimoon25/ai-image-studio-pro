@@ -1,5 +1,25 @@
 from google.genai import types
 from config.config import get_client, MODEL_ID
+import io
+import PIL.Image
+
+def process_api_image(image_part):
+    """Process image from API response and ensure proper PIL format"""
+    try:
+        if hasattr(image_part, 'as_image'):
+            img = image_part.as_image()
+            if img:
+                # Ensure proper PIL Image format
+                if not hasattr(img, 'format') or img.format is None:
+                    buf = io.BytesIO()
+                    img.save(buf, format='PNG')
+                    buf.seek(0)
+                    img = PIL.Image.open(buf)
+                    img.format = 'PNG'
+                return img
+    except Exception as e:
+        print(f"Error processing API image: {e}")
+    return None
 
 def face_swap_images(source_image, target_image, options):
     """Advanced face swap between two images"""
@@ -44,8 +64,9 @@ def face_swap_images(source_image, target_image, options):
         )
         
         for part in response.parts:
-            if hasattr(part, 'as_image') and part.as_image():
-                return part.as_image(), "Face swap completed successfully!"
+            result_image = process_api_image(part)
+            if result_image:
+                return result_image, "Face swap completed successfully!"
         
         return None, "Face swap failed to generate result"
     except Exception as e:
@@ -103,8 +124,9 @@ def advanced_edit_image(input_image, edit_type, options):
         )
         
         for part in response.parts:
-            if hasattr(part, 'as_image') and part.as_image():
-                return part.as_image(), "Image transformation completed successfully!"
+            result_image = process_api_image(part)
+            if result_image:
+                return result_image, "Image transformation completed successfully!"
         
         return None, "No edited image generated"
     except Exception as e:
