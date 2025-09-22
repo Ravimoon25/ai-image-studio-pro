@@ -2,6 +2,7 @@ import streamlit as st
 import io
 from datetime import datetime
 import json
+import PIL.Image
 from config.config import STYLE_PRESETS, ASPECT_RATIOS
 
 def init_session_state():
@@ -12,6 +13,20 @@ def init_session_state():
         st.session_state.edit_history = []
     if 'analysis_history' not in st.session_state:
         st.session_state.analysis_history = []
+
+def convert_to_pil_image(image):
+    """Convert various image formats to PIL Image"""
+    if hasattr(image, 'as_image'):
+        # This is a Gemini AI image response
+        return image.as_image()
+    elif isinstance(image, PIL.Image.Image):
+        return image
+    elif hasattr(image, 'read'):
+        # This is a file-like object
+        return PIL.Image.open(image)
+    else:
+        # Try to treat as PIL Image directly
+        return image
 
 def enhance_prompt(base_prompt, style, aspect_ratio, quality_boost=True):
     """Enhance user prompt with style and technical improvements"""
@@ -51,14 +66,23 @@ def save_to_history(item_type, data):
 
 def create_download_link(image, filename):
     """Create download button for images"""
-    buf = io.BytesIO()
-    image.save(buf, format='PNG')
-    return st.download_button(
-        f"Download {filename}",
-        buf.getvalue(),
-        f"{filename}.png",
-        "image/png"
-    )
+    try:
+        # Ensure we have a PIL Image
+        pil_image = convert_to_pil_image(image)
+        
+        buf = io.BytesIO()
+        pil_image.save(buf, format='PNG')
+        buf.seek(0)
+        
+        return st.download_button(
+            f"Download {filename}",
+            buf.getvalue(),
+            f"{filename}.png",
+            "image/png"
+        )
+    except Exception as e:
+        st.error(f"Error creating download link: {str(e)}")
+        return None
 
 def get_css_styles():
     """Return CSS styles for the application"""
