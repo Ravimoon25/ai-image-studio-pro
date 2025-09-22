@@ -1,7 +1,21 @@
 from google.genai import types
-from config.config import get_client, MODEL_ID
+import streamlit as st
+from google import genai
 import io
 import PIL.Image
+
+# Model configuration
+MODEL_ID = "gemini-2.5-flash-image-preview"
+
+@st.cache_resource
+def get_client():
+    """Initialize Gemini client with error handling"""
+    try:
+        api_key = st.secrets["GOOGLE_API_KEY"]
+        return genai.Client(api_key=api_key)
+    except Exception as e:
+        st.error(f"Failed to initialize AI client: {str(e)}")
+        st.stop()
 
 def generate_image(prompt, num_variants=1):
     """Generate image(s) from text prompt"""
