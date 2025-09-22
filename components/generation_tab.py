@@ -1,10 +1,9 @@
-
 import streamlit as st
 import PIL.Image
 from datetime import datetime
 from config.config import STYLE_PRESETS, ASPECT_RATIOS
 from services.generation_service import generate_image
-from utils.utils import enhance_prompt, save_to_history, create_download_link
+from utils.utils import enhance_prompt, save_to_history, create_download_link, convert_to_pil_image
 
 def render_generation_tab():
     st.header("Advanced Image Generation")
@@ -67,8 +66,10 @@ def render_generation_tab():
                     
                     # Display images in responsive grid
                     if len(all_images) == 1:
-                        st.image(all_images[0], use_column_width=True)
-                        create_download_link(all_images[0], "generated_image")
+                        # Convert to PIL Image if needed
+                        display_image = convert_to_pil_image(all_images[0])
+                        st.image(display_image, use_container_width=True)
+                        create_download_link(display_image, "generated_image")
                     else:
                         # Grid display for multiple images
                         cols_per_row = min(3, len(all_images))
@@ -76,8 +77,9 @@ def render_generation_tab():
                             cols = st.columns(cols_per_row)
                             for j, img in enumerate(all_images[i:i+cols_per_row]):
                                 with cols[j]:
-                                    st.image(img, caption=f"Image {i+j+1}")
-                                    create_download_link(img, f"image_{i+j+1}")
+                                    display_image = convert_to_pil_image(img)
+                                    st.image(display_image, caption=f"Image {i+j+1}")
+                                    create_download_link(display_image, f"image_{i+j+1}")
                     
                     # Batch download option
                     if len(all_images) > 1:
