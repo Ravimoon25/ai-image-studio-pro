@@ -6,7 +6,7 @@ from config.config import (
     BACKGROUND_OPTIONS, FACE_ENHANCEMENT, BODY_MODIFICATIONS
 )
 from services.editing_service import face_swap_images, advanced_edit_image
-from utils.utils import save_to_history, create_download_link
+from utils.utils import save_to_history, create_download_link, convert_to_pil_image
 
 def render_editing_tab():
     st.header("Complete Image Transformation Studio")
@@ -20,7 +20,7 @@ def render_editing_tab():
     
     if uploaded_image:
         image = PIL.Image.open(uploaded_image)
-        st.image(image, caption="Original Image", use_column_width=True)
+        st.image(image, caption="Original Image", use_container_width=True)
         
         # Main transformation type selection
         st.markdown("**Choose Transformation Type:**")
@@ -92,12 +92,14 @@ def render_editing_tab():
                 # Before/After comparison
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.image(image, caption="Before", use_column_width=True)
+                    st.image(image, caption="Before", use_container_width=True)
                 with col2:
-                    st.image(edited_image, caption="After", use_column_width=True)
+                    # Convert to PIL Image if needed
+                    display_image = convert_to_pil_image(edited_image)
+                    st.image(display_image, caption="After", use_container_width=True)
                 
                 # Download options
-                create_download_link(edited_image, f"transformed_{edit_type.replace(' ', '_').lower()}")
+                create_download_link(display_image, f"transformed_{edit_type.replace(' ', '_').lower()}")
                 
                 # Save to history
                 save_to_history('edit', {
@@ -163,12 +165,12 @@ def get_transformation_options(edit_type, image):
             )
             if source_face:
                 source_img = PIL.Image.open(source_face)
-                st.image(source_img, caption="Source Face", use_column_width=True)
+                st.image(source_img, caption="Source Face", use_container_width=True)
         
         with col2:
             st.markdown("**Target Image (Body to Keep)**")
             st.info("Using the main uploaded image as target body")
-            st.image(image, caption="Target Body", use_column_width=True)
+            st.image(image, caption="Target Body", use_container_width=True)
         
         # Face swap options
         preserve_hair = st.checkbox("Keep target's hairstyle", True)
