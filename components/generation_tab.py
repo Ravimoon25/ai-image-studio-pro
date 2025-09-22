@@ -68,8 +68,11 @@ def render_generation_tab():
                     if len(all_images) == 1:
                         # Convert to PIL Image if needed
                         display_image = convert_to_pil_image(all_images[0])
-                        st.image(display_image, use_container_width=True)
-                        create_download_link(display_image, "generated_image")
+                        if display_image:
+                            st.image(display_image, use_container_width=True)
+                            create_download_link(display_image, "generated_image")
+                        else:
+                            st.error("Failed to convert image for display")
                     else:
                         # Grid display for multiple images
                         cols_per_row = min(3, len(all_images))
@@ -78,8 +81,11 @@ def render_generation_tab():
                             for j, img in enumerate(all_images[i:i+cols_per_row]):
                                 with cols[j]:
                                     display_image = convert_to_pil_image(img)
-                                    st.image(display_image, caption=f"Image {i+j+1}")
-                                    create_download_link(display_image, f"image_{i+j+1}")
+                                    if display_image:
+                                        st.image(display_image, caption=f"Image {i+j+1}")
+                                        create_download_link(display_image, f"image_{i+j+1}")
+                                    else:
+                                        st.error(f"Failed to convert image {i+j+1}")
                     
                     # Batch download option
                     if len(all_images) > 1:
