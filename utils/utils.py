@@ -16,17 +16,40 @@ def init_session_state():
 
 def convert_to_pil_image(image):
     """Convert various image formats to PIL Image"""
-    if hasattr(image, 'as_image'):
-        # This is a Gemini AI image response
-        return image.as_image()
-    elif isinstance(image, PIL.Image.Image):
+    try:
+        # If it's already a PIL Image, return it
+        if isinstance(image, PIL.Image.Image):
+            return image
+        
+        # If it's a Gemini AI response with as_image method
+        if hasattr(image, 'as_image'):
+            try:
+                pil_img = image.as_image()
+                # Ensure it has the format attribute by saving and reopening
+                if pil_img and not hasattr(pil_img, 'format'):
+                    buf = io.BytesIO()
+                    pil_img.save(buf, format='PNG')
+                    buf.seek(0)
+                    return PIL.Image.open(buf)
+                return pil_img
+            except Exception as e:
+                st.error(f"Error converting Gemini image: {e}")
+                return None
+        
+        # If it's file-like object
+        if hasattr(image, 'read'):
+            return PIL.Image.open(image)
+        
+        # If it's bytes
+        if isinstance(image, bytes):
+            return PIL.Image.open(io.BytesIO(image))
+        
+        # Default: try to treat as PIL Image
         return image
-    elif hasattr(image, 'read'):
-        # This is a file-like object
-        return PIL.Image.open(image)
-    else:
-        # Try to treat as PIL Image directly
-        return image
+        
+    except Exception as e:
+        st.error(f"Error converting image to PIL format: {e}")
+        return None
 
 def enhance_prompt(base_prompt, style, aspect_ratio, quality_boost=True):
     """Enhance user prompt with style and technical improvements"""
