@@ -1,9 +1,30 @@
 import streamlit as st
 import PIL.Image
 from datetime import datetime
-from config.config import STYLE_PRESETS, ASPECT_RATIOS
 from services.generation_service import generate_image
 from utils.utils import enhance_prompt, save_to_history, create_download_link, convert_to_pil_image
+
+def get_style_presets():
+    """Get style presets"""
+    return {
+        "Photorealistic": "ultra-realistic, high-definition, professional photography, sharp details",
+        "Digital Art": "digital painting, concept art, detailed illustration, vibrant colors",
+        "Cartoon Style": "cartoon, animated style, colorful and fun, playful",
+        "Oil Painting": "classical oil painting, artistic brushstrokes, textured canvas",
+        "Sketch": "pencil sketch, hand-drawn, artistic lines, monochrome",
+        "Vintage": "vintage style, retro aesthetic, aged look, nostalgic",
+        "Cyberpunk": "neon lights, futuristic, cyberpunk aesthetic, dark atmosphere",
+        "Minimalist": "clean, simple, minimalist design, elegant simplicity"
+    }
+
+def get_aspect_ratios():
+    """Get aspect ratios"""
+    return {
+        "Square (1:1)": "square format, equal dimensions",
+        "Portrait (3:4)": "portrait orientation, vertical composition",
+        "Landscape (4:3)": "landscape orientation, horizontal composition", 
+        "Wide (16:9)": "wide format, cinematic composition"
+    }
 
 def render_generation_tab():
     st.header("Advanced Image Generation")
@@ -24,8 +45,8 @@ def render_generation_tab():
         
         col1a, col1b, col1c = st.columns(3)
         with col1a:
-            style = st.selectbox("Art Style:", ["None"] + list(STYLE_PRESETS.keys()))
-            aspect_ratio = st.selectbox("Aspect Ratio:", ["Default"] + list(ASPECT_RATIOS.keys()))
+            style = st.selectbox("Art Style:", ["None"] + list(get_style_presets().keys()))
+            aspect_ratio = st.selectbox("Aspect Ratio:", ["Default"] + list(get_aspect_ratios().keys()))
         
         with col1b:
             num_variants = st.slider("Variations:", 1, 4, 2, help="Generate multiple versions")
@@ -79,6 +100,68 @@ def render_generation_tab():
                         for i in range(0, len(all_images), cols_per_row):
                             cols = st.columns(cols_per_row)
                             for j, img in enumerate(all_images[i:i+cols_per_row]):
+                                with cols[j]:
+                                    display_image = convert_to_pil_image(img)
+                                    if display_image:
+                                        st.image(display_image, caption=f"Image {i+j+1}")
+                                        create_download_link(display_image, f"image_{i+j+1}")
+                                    else:
+                                        st.error(f"Failed to convert image {i+j+1}")
+                    
+                    # Batch download option
+                    if len(all_images) > 1:
+                        if st.button("Download All as ZIP"):
+                            st.info("ZIP download feature coming soon!")
+                    
+                    # Save to history
+                    save_to_history('generation', {
+                        'prompt': prompt,
+                        'style': style,
+                        'variants': num_variants,
+                        'batch_mode': batch_mode,
+                        'count': len(all_images)
+                    })
+                else:
+                    st.error("Failed to generate images. Please try again.")
+            else:
+                st.warning("Please enter a description!")
+    
+    with col2:
+        st.markdown("**Quick Templates**")
+        
+        template_categories = {
+            "Professional": [
+                "Business headshot, confident expression",
+                "Corporate team photo, professional attire",
+                "Executive portrait, formal background",
+                "LinkedIn profile photo, approachable smile"
+            ],
+            "Creative": [
+                "Artistic portrait, creative lighting",
+                "Fashion model pose, stylish outfit",
+                "Creative workspace, inspiring environment",
+                "Artistic collaboration, team creativity"
+            ],
+            "Social Media": [
+                "Instagram-ready portrait, trendy style",
+                "Lifestyle photo, casual but polished",
+                "Influencer content, engaging pose",
+                "Story-worthy moment, authentic feel"
+            ],
+            "Character": [
+                "Fantasy character, magical setting",
+                "Superhero pose, dynamic action",
+                "Historical figure, period clothing",
+                "Anime character, vibrant colors"
+            ]
+        }
+        
+        for category, templates in template_categories.items():
+            with st.expander(category):
+                for template in templates:
+                    if st.button(template[:30] + "...", key=f"template_{template[:15]}", help=template):
+                        st.session_state.template_prompt = template
+                        st.rerun()
                                 with cols[j]:
                                     display_image = convert_to_pil_image(img)
                                     if display_image:
