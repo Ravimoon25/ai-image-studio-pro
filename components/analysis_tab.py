@@ -18,7 +18,7 @@ def render_analysis_tab():
     
     if analysis_image:
         image = PIL.Image.open(analysis_image)
-        st.image(image, caption="Image for Analysis", use_column_width=True)
+        st.image(image, caption="Image for Analysis", use_container_width=True)
         
         # Analysis type selection
         st.markdown("**Choose Analysis Type:**")
